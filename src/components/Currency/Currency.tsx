@@ -7,7 +7,7 @@ import { Dict } from 'styled-components/dist/types';
 interface CurrencyProps {}
 
 interface ICurrencyData {
-   currencyCodeA: number,
+   currencyCodeA?: number,
    currencyCodeB: number,
    date: number,
    rateBuy: number,
@@ -61,9 +61,9 @@ const Currency: FC<CurrencyProps> = () => {
    return(
       <CurrencyWrapper>
          <h3>Date: {date.toLocaleDateString()} Time: {date.toLocaleTimeString()}</h3>
-         <p>Currency rates for 1{nameCurrrency.get(currencies[0].currencyCodeA)}:</p>
+         <p>Currency rates for 1{nameCurrrency.get(currencies[0].currencyCodeA??= 0)}:</p>
          <ul>
-            <li>buy for&nbsp;<strong style={{color: 'yellow'}}>{currencies[0].rateBuy.toFixed(2)}</strong>{nameCurrrency.get(currencies[0].currencyCodeB)}</li>
+            <li>buy for&nbsp;<strong style={{color: 'yellow'}}>{currencies[0].rateBuy.toFixed(2)}</strong>{nameCurrrency.get(currencies[0].currencyCodeB??= 0)}</li>
             <li>sell for&nbsp;<strong style={{color: 'red'}}>{currencies[0].rateSell.toFixed(2)}</strong>{nameCurrrency.get(currencies[0].currencyCodeB)}</li>
          </ul>
       </CurrencyWrapper>
