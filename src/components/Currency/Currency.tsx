@@ -1,15 +1,18 @@
-import React, { FC } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import axios from 'axios';
 import { CurrencyWrapper } from './Currency.styled';
 
 interface CurrencyProps {}
 
-interface ICurrency {
+interface ICurrencyData {
    currencyCodeA?: number,
    currencyCodeB?: number,
    rateBuy: number,
    rateSell: number,
-   testValue: string,
+}
+
+interface ICurrencyArray {
+   [index: number]: ICurrencyData,
 }
 
 interface IErrorStatus {
@@ -27,31 +30,28 @@ const Currency: FC<CurrencyProps> = () => {
 
    const baseURL = 'https://api.monobank.ua/bank/currency';
 
-   let errorData: IErrorData = {message: 'no msg', code: 'no code', name: 'no name', response: {status: 0}};
+   let iCurrencyArray: ICurrencyArray = [{currencyCodeA: 0, currencyCodeB: 0, rateBuy: 0, rateSell: 0}];
+   let iErrorData: IErrorData = {message: 'no msg', code: 'no code', name: 'no name', response: {status: 0}};
 
-   const [post, setPost] = React.useState(null);
-   const [error, setError] = React.useState(errorData);
+   const [currencies, setCurrency] = useState(iCurrencyArray);
+   const [error, setError] = useState(iErrorData);
 
    React.useEffect(() => {
      axios.get(baseURL).
-     then((response) => { setPost(response.data['0']);}).
-     catch(error => setError(error));}, [post])
+     then((response) => { 
+      setCurrency(response.data);
+   }).
+     catch(error => setError(error)).
+     finally(() => {
+   });}, [])
 
-   if(error) {
+   if(!error.response.status) {
       return <h3 style={{color: 'red'}}>{error.code}&nbsp;{error.response.status}</h3>;
    }
 
-   if(!post) {return <h3 style={{color: 'red'}}>No data</h3>;}
-
-   let currency: ICurrency = {currencyCodeA: 0, currencyCodeB: 0, rateBuy: 0, rateSell: 0, testValue: 'hello world'};
-   currency = post as ICurrency;
-   // const currency: ICurrency = post;
-
    return(
       <CurrencyWrapper>
-         Currency {post['rateBuy']} Component
-         Currency {currency.currencyCodeA} Component
-         Currency {currency.testValue} Component
+         Currency is {currencies[0].currencyCodeA}: 
       </CurrencyWrapper>
    );
 }
