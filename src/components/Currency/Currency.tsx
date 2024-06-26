@@ -7,11 +7,39 @@ import { Dict } from 'styled-components/dist/types';
 interface CurrencyProps {}
 
 interface ICurrencyData {
-   currencyCodeA?: number,
+   currencyCodeA: number,
    currencyCodeB: number,
    date: number,
    rateBuy: number,
    rateSell: number,
+}
+
+class Currency {
+   private scale: number = 1000;
+   private readonly nameCurrrency = new Map([[0, 'UNKNOWN'], [840, 'USD'], [980, 'UAH'], [978, 'EUR']]);
+   NameA?: string;
+   NameB?: string;
+   date: string;
+   time: string;
+   rateBuy: number;
+   rateSell: number;
+
+   constructor(currency: ICurrencyData){
+      this.NameA = this.nameCurrrency.get(currency.currencyCodeA??= 0);
+      this.NameB = this.nameCurrrency.get(currency.currencyCodeB??= 0);
+      this.date = this.setDate(currency.date);
+      this.time = this.setTime(currency.date);
+      this.rateBuy = Math.round(currency.rateBuy * 100) / 100;
+      this.rateSell = Math.round(currency.rateSell * 100) / 100;
+   }
+
+   setDate(date: number): string {
+      return new Date(date * this.scale).toLocaleDateString();
+   }
+
+   setTime(date: number): string {
+      return new Date(date * this.scale).toLocaleTimeString();
+   }
 }
 
 interface ICurrencyArray {
@@ -33,41 +61,54 @@ const client = axios.create({
    baseURL: 'https://api.monobank.ua',
 })
 
-const nameCurrrency = new Map([[840, 'USD'], [980, 'UAH'], [978, 'EUR']]);
+class Error {
+   status: number;
+   readonly description: string = 'unknown';
 
-const Currency: FC<CurrencyProps> = () => {
+   constructor(error: IErrorData) {
+      this.status = error.response.status;
+      this.description = this.setDescription(error.name, error.code)
+   }
 
-   let iCurrencyArray: ICurrencyArray = [{currencyCodeA: 0, currencyCodeB: 0, date: 0, rateBuy: 0, rateSell: 0}];
-   let iErrorData: IErrorData = {message: 'no msg', code: 'no code', name: 'no name', response: {status: 0}};
+   private setDescription(name: string, code: string): string {
+      return `custom description of ${name}: ${code} ${this.status}`;
+   }
+}
 
-   const [currencies, setCurrency] = useState(iCurrencyArray);
-   const [error, setError] = useState(iErrorData);
+const CurrencyFC: FC<CurrencyProps> = () => {
+
+   let _currency = new Currency({currencyCodeA: 0, currencyCodeB: 0, date: 0, rateBuy: 0, rateSell: 0});
+   let _error = new Error({message: 'no msg', code: 'no code', name: 'no name', response: {status: 0}})
+
+   const [currency, setCurrency] = useState(_currency);
+   const [error, setError] = useState(_error);
 
    React.useEffect(() => {
      client.get('/bank/currency').
      then((response) => { 
-      setCurrency(response.data);
+      setCurrency(new Currency(response.data['0']));
+
+      console.log('JSON responce', response.data['0']);
+      console.log('class currency', currency);
    }).
-     catch(error => setError(error)).
+     catch(error => setError(new Error(error))).
      finally(() => {
    });}, [])
 
-   if(!error.response.status) {
-      return <h3 style={{color: 'red'}}>{error.code}&nbsp;{error.response.status}</h3>;
+   if(!error.status) {
+      return <h3 style={{color: 'red'}}>{error.description}</h3>;
    }
-
-   let date = new Date(currencies[0].date * 1000);
 
    return(
       <CurrencyWrapper>
-         <h3>Date: {date.toLocaleDateString()} Time: {date.toLocaleTimeString()}</h3>
-         <p>Currency rates for 1{nameCurrrency.get(currencies[0].currencyCodeA??= 0)}:</p>
+         <h3>Date: {currency.date} Time: {currency.time}</h3>
+         <p>Currency rates for 1 {currency.NameA}:</p>
          <ul>
-            <li>buy for&nbsp;<strong style={{color: 'yellow'}}>{currencies[0].rateBuy.toFixed(2)}</strong>{nameCurrrency.get(currencies[0].currencyCodeB??= 0)}</li>
-            <li>sell for&nbsp;<strong style={{color: 'red'}}>{currencies[0].rateSell.toFixed(2)}</strong>{nameCurrrency.get(currencies[0].currencyCodeB)}</li>
+            <li>buy for&nbsp;<strong style={{color: 'yellow', fontWeight: 600}}>{currency.rateBuy}</strong>&nbsp;{currency.NameB}</li>
+            <li>sell for&nbsp;<strong style={{color: 'red', fontWeight: 600}}>{currency.rateSell}</strong>&nbsp;{currency.NameB}</li>
          </ul>
       </CurrencyWrapper>
    );
 }
 
-export default Currency;
+export default CurrencyFC;
