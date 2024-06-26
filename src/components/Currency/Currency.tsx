@@ -77,6 +77,8 @@ class Error {
 
 const CurrencyFC: FC<CurrencyProps> = () => {
 
+   // let _currencies: ICurrencyArray = [new Currency({currencyCodeA: 0, currencyCodeB: 0, date: 0, rateBuy: 0, rateSell: 0})];
+
    let _currency = new Currency({currencyCodeA: 0, currencyCodeB: 0, date: 0, rateBuy: 0, rateSell: 0});
    let _error = new Error({message: 'no msg', code: 'no code', name: 'no name', response: {status: 0}})
 
@@ -87,9 +89,6 @@ const CurrencyFC: FC<CurrencyProps> = () => {
      client.get('/bank/currency').
      then((response) => { 
       setCurrency(new Currency(response.data['0']));
-
-      console.log('JSON responce', response.data['0']);
-      console.log('class currency', currency);
    }).
      catch(error => setError(new Error(error))).
      finally(() => {
@@ -104,8 +103,8 @@ const CurrencyFC: FC<CurrencyProps> = () => {
          <h3>Date: {currency.date} Time: {currency.time}</h3>
          <p>Currency rates for 1 {currency.NameA}:</p>
          <ul>
-            <li>buy for&nbsp;<strong style={{color: 'yellow', fontWeight: 600}}>{currency.rateBuy}</strong>&nbsp;{currency.NameB}</li>
-            <li>sell for&nbsp;<strong style={{color: 'red', fontWeight: 600}}>{currency.rateSell}</strong>&nbsp;{currency.NameB}</li>
+            <li>buy for&emsp;<strong style={{color: 'yellow', fontWeight: 600}}>{currency.rateBuy}</strong>&nbsp;{currency.NameB}</li>
+            <li>sell for&emsp;<strong style={{color: 'red', fontWeight: 600}}>{currency.rateSell}</strong>&nbsp;{currency.NameB}</li>
          </ul>
       </CurrencyWrapper>
    );
